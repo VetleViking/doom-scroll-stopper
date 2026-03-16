@@ -1,4 +1,6 @@
-chrome.runtime.onInstalled.addListener(() => {
+const ext = globalThis.browser ?? globalThis.chrome;
+
+ext.runtime.onInstalled.addListener(() => {
   console.log("Service worker installed");
 });
 
@@ -29,7 +31,7 @@ function normalizePath(pathname) {
 }
 
 async function getAllowedSites() {
-  const result = await chrome.storage.local.get("allowedSites");
+  const result = await ext.storage.local.get("allowedSites");
   return result.allowedSites || [];
 }
 
@@ -65,7 +67,7 @@ async function shouldRunOnUrl(url) {
   });
 }
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+ext.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status !== "complete" || !tab.url) return;
 
   const allowed = await shouldRunOnUrl(tab.url);
@@ -73,12 +75,12 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
   if (!allowed) return;
 
-  await chrome.scripting.insertCSS({
+  await ext.scripting.insertCSS({
     target: { tabId },
     files: ["styles.css"]
   });
 
-  await chrome.scripting.executeScript({
+  await ext.scripting.executeScript({
     target: { tabId },
     files: ["content.js"]
   });

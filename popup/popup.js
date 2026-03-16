@@ -5,13 +5,15 @@ const timeButton = document.getElementById("setTimeBtn");
 const timeInput = document.getElementById("timeInput");
 const timeDisplay = document.getElementById("currentTime");
 
+const ext = globalThis.browser ?? globalThis.chrome;
+
 async function getAllowedSites() {
-  const result = await chrome.storage.local.get("allowedSites");
+  const result = await ext.storage.local.get("allowedSites");
   return result.allowedSites || [];
 }
 
 async function saveAllowedSites(sites) {
-  await chrome.storage.local.set({ allowedSites: sites });
+  await ext.storage.local.set({ allowedSites: sites });
 }
 
 function parseSiteInput(input) {
@@ -94,7 +96,7 @@ async function addSite() {
 addBtn.addEventListener("click", addSite);
 
 const saveTimeLimit = async (milliseconds) => {
-  await chrome.storage.local.set({ timeLimit: milliseconds });
+  await ext.storage.local.set({ timeLimit: milliseconds });
 };
 
 timeButton.addEventListener("click", () => {
@@ -110,7 +112,7 @@ timeButton.addEventListener("click", () => {
 });
 
 (async () => {
-  const result = await chrome.storage.local.get("timeLimit");
+  const result = await ext.storage.local.get("timeLimit");
   if (result.timeLimit) {
     const minutes = Math.round(result.timeLimit / (60 * 1000));
     timeDisplay.textContent = `Current Time: ${minutes} minutes`;
