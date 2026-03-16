@@ -42,8 +42,6 @@ async function shouldRunOnUrl(url) {
   const currentPath = normalizePath(current.pathname);
   const sites = await getAllowedSites();
 
-  console.log("Checking:", current, "against", sites);
-
   return sites.some((site) => {
     const allowed = parseSiteInput(site);
     if (!allowed) return false;
@@ -55,10 +53,8 @@ async function shouldRunOnUrl(url) {
     }
 
     if (allowedPath === "/") {
-      return currentPath === "/";
+      return true;
     }
-
-    console.log(`Comparing paths: current="${currentPath}" vs allowed="${allowedPath}"`);
 
     return (
       currentPath === allowedPath ||
