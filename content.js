@@ -1,4 +1,4 @@
-(function () {
+(async function () {
   const overlay = document.createElement("div");
   overlay.id = "image-overlay";
   
@@ -9,9 +9,9 @@
   overlay.appendChild(img);
   document.documentElement.appendChild(overlay);
 
-  // 1 minute
-  const duration = 60 * 1000;
-  const interval = 20;
+  const result = await chrome.storage.local.get("timeLimit");
+  const duration = result.timeLimit || 60 * 1000;
+  const interval = 100;
   const startTime = Date.now();
 
   const progressInterval = setInterval(() => {

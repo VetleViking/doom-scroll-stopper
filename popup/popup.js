@@ -1,6 +1,9 @@
 const siteInput = document.getElementById("siteInput");
 const addBtn = document.getElementById("addBtn");
 const siteList = document.getElementById("siteList");
+const timeButton = document.getElementById("setTimeBtn");
+const timeInput = document.getElementById("timeInput");
+const timeDisplay = document.getElementById("currentTime");
 
 async function getAllowedSites() {
   const result = await chrome.storage.local.get("allowedSites");
@@ -89,6 +92,30 @@ async function addSite() {
 }
 
 addBtn.addEventListener("click", addSite);
+
+const saveTimeLimit = async (milliseconds) => {
+  await chrome.storage.local.set({ timeLimit: milliseconds });
+};
+
+timeButton.addEventListener("click", () => {
+  const minutes = parseInt(timeInput.value);
+  if (isNaN(minutes) || minutes <= 0) {
+    alert("Please enter a valid number of minutes.");
+    return;
+  }
+  const milliseconds = minutes * 60 * 1000;
+  saveTimeLimit(milliseconds);
+  timeInput.value = "";
+  timeDisplay.textContent = `Current Time: ${minutes} minutes`;
+});
+
+(async () => {
+  const result = await chrome.storage.local.get("timeLimit");
+  if (result.timeLimit) {
+    const minutes = Math.round(result.timeLimit / (60 * 1000));
+    timeDisplay.textContent = `Current Time: ${minutes} minutes`;
+  }
+})();
 
 (async () => {
   const sites = await getAllowedSites();
