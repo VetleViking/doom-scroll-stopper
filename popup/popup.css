@@ -1,0 +1,22 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 8px;
+    min-width: 200px;
+    max-width: 400px;
+}
+
+#siteList {
+    margin-top: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 4px;
+}
+
+#siteList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+}

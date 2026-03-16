@@ -2,21 +2,30 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log("Service worker installed");
 });
 
-function getHostname(input) {
+function parseSiteInput(input) {
   try {
-    const withProtocol = input.startsWith("http://") || input.startsWith("https://")
-      ? input
-      : `https://${input}`;
+    const withProtocol =
+      input.startsWith("http://") || input.startsWith("https://")
+        ? input
+        : `https://${input}`;
 
-    return new URL(withProtocol).hostname;
+    const url = new URL(withProtocol);
+
+    return {
+      hostname: url.hostname.replace(/^www\./, "").toLowerCase(),
+      pathname: url.pathname
+    };
   } catch (err) {
     console.warn("Invalid URL/pattern:", input);
     return null;
   }
 }
 
-function normalizeHost(hostname) {
-  return hostname.replace(/^www\./, "").toLowerCase();
+function normalizePath(pathname) {
+  if (!pathname || pathname === "") return "/";
+  return pathname.endsWith("/") && pathname !== "/"
+    ? pathname.slice(0, -1)
+    : pathname;
 }
 
 async function getAllowedSites() {
@@ -25,19 +34,34 @@ async function getAllowedSites() {
 }
 
 async function shouldRunOnUrl(url) {
-  const currentHostname = getHostname(url);
-  if (!currentHostname) return false;
+  const current = parseSiteInput(url);
+  if (!current) return false;
 
-  const normalizedCurrent = normalizeHost(currentHostname);
+  const currentPath = normalizePath(current.pathname);
   const sites = await getAllowedSites();
 
-  console.log("Checking:", normalizedCurrent, "against", sites);
+  console.log("Checking:", current, "against", sites);
 
   return sites.some((site) => {
-    const allowedHostname = getHostname(site);
-    if (!allowedHostname) return false;
+    const allowed = parseSiteInput(site);
+    if (!allowed) return false;
 
-    return normalizeHost(allowedHostname) === normalizedCurrent;
+    const allowedPath = normalizePath(allowed.pathname);
+
+    if (allowed.hostname !== current.hostname) {
+      return false;
+    }
+
+    if (allowedPath === "/") {
+      return currentPath === "/";
+    }
+
+    console.log(`Comparing paths: current="${currentPath}" vs allowed="${allowedPath}"`);
+
+    return (
+      currentPath === allowedPath ||
+      currentPath.startsWith(allowedPath + "/")
+    );
   });
 }
 

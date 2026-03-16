@@ -11,17 +11,59 @@ async function saveAllowedSites(sites) {
   await chrome.storage.local.set({ allowedSites: sites });
 }
 
+function parseSiteInput(input) {
+  try {
+    const value = input.trim();
+    if (!value) return null;
+
+    const withProtocol =
+      value.startsWith("http://") || value.startsWith("https://")
+        ? value
+        : `https://${value}`;
+
+    const url = new URL(withProtocol);
+
+    return {
+      hostname: url.hostname.replace(/^www\./, "").toLowerCase(),
+      pathname: url.pathname
+    };
+  } catch (err) {
+    console.warn("Invalid site input:", input);
+    return null;
+  }
+}
+
+function normalizePath(pathname) {
+  if (!pathname || pathname === "") return "/";
+  return pathname.endsWith("/") && pathname !== "/"
+    ? pathname.slice(0, -1)
+    : pathname;
+}
+
+function normalizeSiteForStorage(input) {
+  const parsed = parseSiteInput(input);
+  if (!parsed) return null;
+
+  const path = normalizePath(parsed.pathname);
+
+  if (path === "/") {
+    return parsed.hostname;
+  }
+
+  return `${parsed.hostname}${path}`;
+}
+
 function renderSites(sites) {
   siteList.innerHTML = "";
 
-  for (const pattern of sites) {
+  for (const site of sites) {
     const li = document.createElement("li");
-    li.textContent = pattern + " ";
+    li.textContent = site + " ";
 
     const removeBtn = document.createElement("button");
     removeBtn.textContent = "Remove";
     removeBtn.onclick = async () => {
-      const updated = sites.filter(s => s !== pattern);
+      const updated = sites.filter((s) => s !== site);
       await saveAllowedSites(updated);
       renderSites(updated);
     };
@@ -31,33 +73,14 @@ function renderSites(sites) {
   }
 }
 
-function normalizePattern(input) {
-  let value = input.trim();
-
-  if (!value) return null;
-
-  if (!value.startsWith("http://") && !value.startsWith("https://")) {
-    value = `https://${value}`;
-  }
-
-  if (!value.includes("*")) {
-    if (value.endsWith("/")) {
-      value += "*";
-    } else {
-      value += "/*";
-    }
-  }
-
-  return value;
-}
-
 async function addSite() {
-  const pattern = normalizePattern(siteInput.value);
-  if (!pattern) return;
+  const site = normalizeSiteForStorage(siteInput.value);
+  if (!site) return;
 
   const sites = await getAllowedSites();
-  if (!sites.includes(pattern)) {
-    sites.push(pattern);
+
+  if (!sites.includes(site)) {
+    sites.push(site);
     await saveAllowedSites(sites);
   }
 
