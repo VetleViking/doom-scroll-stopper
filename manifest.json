@@ -1,0 +1,9 @@
+{
+  "name": "Doom Scroll Stopper",
+  "description": "An extension to help stop doom scrolling.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
