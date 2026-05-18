@@ -1,5 +1,11 @@
 (async function () {
   const ext = globalThis.browser ?? globalThis.chrome;
+
+  const alreadyInjected = document.getElementById("image-overlay");
+  if (alreadyInjected) {
+    return;
+  }
+
   const overlay = document.createElement("div");
   overlay.id = "image-overlay";
   
